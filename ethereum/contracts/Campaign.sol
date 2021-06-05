@@ -1,10 +1,10 @@
-pragma solidity ^0.4.17;
+pragma solidity >=0.4.17;
 
 contract Campaign{
     struct Request{
         string description;
         uint value;
-        address recipient;
+        address payable recipient;
         bool complete;
         mapping(address=>bool) approvals;
         uint approvalCount;
@@ -14,14 +14,15 @@ contract Campaign{
     uint public minimumContribution;
     mapping(address=>bool) public approvers;
     uint public approversCount;
-    Request[] public requests;
+    uint numRequests;
+    mapping (uint => Request) requests;
     
     modifier restricted(){
         require(msg.sender == manager);
         _;
     }
     
-    function Campaign(uint minimum, address campaignCreator) public {
+    constructor(uint minimum, address campaignCreator) public {
         manager = campaignCreator;
         minimumContribution = minimum;
     }
@@ -34,15 +35,14 @@ contract Campaign{
         approversCount++;
     }
     
-    function createRequest(string description, uint value, address recipient) public restricted{
-        Request memory newRequest = Request({
-            description : description,
-            value : value,
-            recipient : recipient,
-            complete : false,
-            approvalCount : 0
-        });
-        requests.push(newRequest);
+    function createRequest (string memory description, uint value,
+            address payable recipient) public restricted{
+                Request storage r = requests[numRequests++];
+                r.description = description;
+                r.value = value;
+                r.recipient = recipient;
+                r.complete = false;
+                r.approvalCount = 0;
     }
     
     function approveRequest(uint index) public{
@@ -68,27 +68,27 @@ contract Campaign{
     function getSummary() public view returns(uint, uint, uint, uint, address){
        return(
             minimumContribution,
-            this.balance,
-            requests.length,
+            address(this).balance,
+            numRequests,
             approversCount,
             manager
        );
     }
 
     function getRequestCount() public view returns(uint){
-        return requests.length;
+        return numRequests;
     }
 }
 
 contract CampaignFactory{
-    address[] deployedCampaigns;
+    Campaign[] deployedCampaigns;
     
     function createCampaign(uint minimum) public{
-            address newCampaign = new Campaign(minimum, msg.sender);
+            Campaign newCampaign = new Campaign(minimum, msg.sender);
             deployedCampaigns.push(newCampaign);
     }
     
-    function getDeployedCampaigns() public view returns (address[]){
+    function getDeployedCampaigns() public view returns (Campaign[] memory){
         return deployedCampaigns;
     }
 }
