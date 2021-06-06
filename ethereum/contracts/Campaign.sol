@@ -11,6 +11,7 @@ contract Campaign{
     }
     
     address public manager;
+    string descriptionCampain;
     uint public minimumContribution;
     mapping(address=>bool) public approvers;
     uint public approversCount;
@@ -22,9 +23,10 @@ contract Campaign{
         _;
     }
     
-    constructor(uint minimum, address campaignCreator) public {
+    constructor(uint minimum, address campaignCreator,string memory descriptionCamp) public {
         manager = campaignCreator;
         minimumContribution = minimum;
+        descriptionCampain = descriptionCamp;
     }
     
     function contribute() public payable{
@@ -83,8 +85,8 @@ contract Campaign{
 contract CampaignFactory{
     Campaign[] deployedCampaigns;
     
-    function createCampaign(uint minimum) public{
-            Campaign newCampaign = new Campaign(minimum, msg.sender);
+    function createCampaign(uint minimum, string memory descriptionCampain) public{
+            Campaign newCampaign = new Campaign(minimum, msg.sender, descriptionCampain);
             deployedCampaigns.push(newCampaign);
     }
     
