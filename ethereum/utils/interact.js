@@ -40,6 +40,10 @@ export const getCurrentWalletConnected = async () => {
             const addressArray = await window.ethereum.request({
                 method: "eth_accounts",
             });
+            const eth_coinbase = await window.ethereum.request({
+                method: "eth_coinbase",
+            });
+            console.log('%c addressArray', 'color: blue;', eth_coinbase)
             if (addressArray.length > 0) {
                 return {
                     address: addressArray[0],
